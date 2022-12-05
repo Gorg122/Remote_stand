@@ -633,12 +633,13 @@ def File_deleting(folder):
                     metadata = ['Name', 'Size', 'Item type', 'Date modified', 'Date created']
                     try:
                         file_metadata = get_file_metadata(root, filename, metadata)
+                        #Метаданные архива
                         # print(file_metadata)
                         date_modify = file_metadata['Date modified']
                     except:
                         file_metadata = {'Name': 1, 'Size': 20, 'Item type': "folder", 'Date modified': "28.05.2022",
                                          'Date created': "28.05.2022"}
-                        date_modify = "1.05.2022"
+                        date_modify = "6.12.2022"
                         GUI.print_log("Данные о времени создания файлов получены")
                     print(date_modify)
                     today = date.today()
@@ -918,9 +919,15 @@ def Launch(User_path_to_file, root_path):
                         os.remove(root + '/' + file)
                 upload_file = False
             else:
-                for file in os.listdir(folder_send):
-                    if file.endswith("zip"):
-                        file_path = folder_send + "/" + file
+                # for folders, file in os.listdir(folder_send):
+                #     if file.endswith("zip"):
+                #         file_path = folder_send + "/" + file
+                print("ТА САМАЯ ЕБАЛА---------------------------------------------")
+                print(folder_send)
+                print("Конец ебалы---------------------------------------------\n")
+                folder_send = "C:/Project_930/Prototype_with_mail_bot_TO_EXE(2)/Archived"
+                file_path = Find_files_by_ext(folder_send, "zip")
+
                 # Получаем ссылку на скачивание данного архива
                 file_link = File_upload(service=service, folder_id=folder_id, file_path=file_path)
                 print("Ссылка на файл = ", file_link)
