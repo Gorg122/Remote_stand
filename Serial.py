@@ -182,3 +182,4 @@ else:
     errors_file.write("Файл отсутствует\n")
     print("Файл отсутствует\n")
 errors_file.close()
+#
