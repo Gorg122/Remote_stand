@@ -238,3 +238,4 @@ def FPGA_flash(User_path, FPGA_num, root_path):
                 return ("Прошить плату не удалось", pr_type)
 
 # FPGA_flash(User_path="student_zip/grisha.petuxov", FPGA_num = 1)
+#
