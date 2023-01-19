@@ -1,4 +1,5 @@
 .idea
+ul_cad_miem
 __pycache__
 Archive
 Archived
@@ -7,3 +8,8 @@ venv
 video
 old
 quickstart.exe
+errors.txt
+video_timing.txt
+video_done.txt
+Config.ini
+

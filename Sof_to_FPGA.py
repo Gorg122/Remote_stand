@@ -5,7 +5,7 @@ import configparser
 import GUI
 
 global pr_type
-pr_type = 100
+pr_type = 2
 
 def Find_files_by_name(dir_path, filename):
     for root, dirs, files in os.walk(dir_path):  # В цикле проходим все папки и файлы в корневой папке

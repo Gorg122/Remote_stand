@@ -40,18 +40,21 @@ def Video():
 
     tik = time.time()
     print(tik)
-
+    tok = 0.0
     # Define the codec and filename.
     #fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     #out = cv2.VideoWriter('output.mp4',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width,frame_height))
-    out = cv2.VideoWriter('video/output.mp4', fourcc, 20.0, (frame_width, frame_height))
+    out = cv2.VideoWriter('video/output.mp4', fourcc, 30.0, (frame_width, frame_height))
 
-
-
-    while(capture.isOpened() ):
+    print("tok = ", tok)
+    print("tok-tik = ", tok - tik)
+    start = 0
+    while(capture.isOpened() and (tok-tik<=int(time_rest) or (start == 1))):
         ret, frame = capture.read()
         tok = time.time()
+        #print("tok-tik = ", tok - tik)
         if ret==True :
+            #print("tok-tik = ", tok - tik)
             # write the  frame
             out.write(frame)
             #cv2.imshow('frame',frame)
@@ -59,7 +62,6 @@ def Video():
             if int(tok - tik) >= int(time_rest):
                 break
         else:
-
             break
 
     # Release everything if job is finished

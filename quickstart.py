@@ -45,7 +45,7 @@ email_name = "Not_email"
 stat_3 = 1
 stat_4 = 1
 stat_5 = 1
-GLOBAL_PC_ID = 3
+#GLOBAL_PC_ID = 2
 
 ############################# Функции для работы с яндекс диском #####################################################
 # URL = 'https://cloud-api.yandex.net/v1/disk/resources'
@@ -181,10 +181,12 @@ def file_downloader(service, value_id, email_name, root_path):
         # GUI.print_log("Download %d%%." % int(status.progress() * 100))
     path_firmware = 'student_zip/' + email_short_name + ''
     archive_path = root_path + '/student_zip/' + email_short_name + '/filename.zip'
-    save_response = file_zip_correct(archive_path)
-    GUI.print_log(save_response[1])
-    if save_response[0]:
-        return ''
+
+    # save_response = file_zip_correct(archive_path)
+    # GUI.print_log(save_response[1])
+    # if save_response[0]:
+    #     return ''
+    #if not(archive_path.endswith(".7z")):
     zip_file = zipfile.ZipFile(archive_path)  # Разархивирование файла
     zip_file.extractall(root_path + '/student_zip/' + email_short_name)
     return path_firmware
@@ -259,7 +261,8 @@ def write_current_time(id):  ##### Функция записи начала ра
     con = connect()
     with con:
         cur = con.cursor()
-        dt_now = datetime.datetime.now()
+        #dt_now = datetime.datetime.now()
+        dt_now = datetime.datetime.now().strftime('%y-%m-%d %a %H:%M:%S')
         try:
             sql = ("""UPDATE status
                                            SET start_time = %s
@@ -315,7 +318,7 @@ def log_upload(stat_work_time, sts_3_time, sts_4_time, sts_5_time, fin_time, typ
             GUI.print_log("Лог записан")
 
 
-def sub_main(service, root_path):
+def sub_main(service, root_path, GLOBAL_PC_ID):
     while True:
         start_time = time.time()
         # os.chdir(root_path)
@@ -400,7 +403,19 @@ def CAD_LOOP():
     GUI.print_log(new_str_path)
     root_path = new_str_path
 
-
+    student_zip = root_path+"/student_zip"
+    print(student_zip)
+    for root, dirs, files in os.walk(student_zip):  # В цикле проходим все папки и файлы в корневой папке
+        for dir in dirs:
+            dirpath = root + '/' + dir  # Добавляем в путь папки и необходимый файл
+            shutil.rmtree(dirpath)
+    for dirs in os.walk(root_path):
+        if (dirs != "Archived") and (not(os.path.exists(root_path + "/Archived"))):
+            os.mkdir(root_path + "/Archived")
+        elif (dirs  != "Archive") and (not(os.path.exists(root_path + "/Archive"))):
+            os.mkdir(root_path + "/Archive")
+        elif (dirs != "video") and (not(os.path.exists(root_path + "/video"))):
+            os.mkdir(root_path + "/video")
     # quickstart_path = subprocess.run("WHERE /R C:\ quickstart.exe", stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     # print(quickstart_path.stdout, '\n')
     # # data = str(quickstart_path.stdout.decode().strip('\r\n'))
@@ -421,6 +436,7 @@ def CAD_LOOP():
     config_dir = root_path + '/' + "Config.ini"
     config.read(config_dir)
     config_path = config['Direc']['path']
+    GLOBAL_PC_ID = config['PC']['id']
     if config_path == root_path:
         print("Путь к папке проекта существует")
     else:
@@ -430,7 +446,7 @@ def CAD_LOOP():
         print("Путь до текущей директории был изменен")
 
     print("Root_path = ", root_path)
-    sub_main(service, root_path=root_path)
+    sub_main(service, root_path=root_path, GLOBAL_PC_ID=GLOBAL_PC_ID)
 
 
 if __name__ == '__main__':

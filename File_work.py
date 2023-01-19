@@ -8,6 +8,7 @@ import subprocess
 import configparser
 import pprint
 import win32com.client
+import stat
 from datetime import date
 from dateutil import parser
 from google.oauth2 import service_account
@@ -25,7 +26,9 @@ from Google_drive_upload import Old_files_delete
 global command_num
 command_num = -1
 global pr_type
-pr_type = 100
+pr_type = 2
+
+
 
 # Функция поиска файла сценария пользователя
 
@@ -77,21 +80,28 @@ def Script_file_detect(User_path_to_file, root_path, errs_path):
         errors_file.close()
         return (script_file_path, script_file_name)
 
-
+# Словарь текущих состояний переключателей
+switches = dict([(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0)])
 # Скрипт передачи управляющих команд на плату Ардуино
 def Serial_delivery(arduino, cur_action, curent_pin, sleep, sleep_dur):
-    # Словарь текущих состояний переключателей
-    switches = dict([(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0)])
+    global switches
     # Распознаем текущую команду
     if cur_action:
         # Проверяем текущее состояние переключателя
-        if switches[int(curent_pin)] == 1:
-            comand_sw1 = str(curent_pin) + "L"
-            switches[int(curent_pin)] = 0
-        else:
+        print("Curent_pin = ", curent_pin)
+        print("Curent_pin_status = ", switches[int(curent_pin)])
+        if switches[int(curent_pin)] == 0:
             comand_sw1 = str(curent_pin) + "H"
+            arduino.write(bytes(comand_sw1, 'utf-8'))
+            print("SW - {} - H".format(curent_pin))
             switches[int(curent_pin)] = 1
-        arduino.write(bytes(comand_sw1, 'utf-8'))
+
+        else:# switches[int(curent_pin)] == 1:
+            comand_sw2 = str(curent_pin) + "L"
+            print("SW - {} - L".format(curent_pin))
+            arduino.write(bytes(comand_sw2, 'utf-8'))
+            switches[int(curent_pin)] = 0
+        #arduino.write(bytes(comand_sw1, 'utf-8'))
         time.sleep(1)
         # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
         data = str(arduino.readline().decode().strip('\r\n'))
@@ -109,6 +119,7 @@ def Serial_delivery(arduino, cur_action, curent_pin, sleep, sleep_dur):
     else:
         comand_but1 = str(curent_pin) + "H"
         arduino.write(bytes(comand_but1, 'utf-8'))
+        print("BT - {} - H".format(curent_pin))
         time.sleep(1)
         # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
         data = str(arduino.readline().decode().strip('\r\n'))
@@ -118,6 +129,7 @@ def Serial_delivery(arduino, cur_action, curent_pin, sleep, sleep_dur):
 
         comand_but2 = str(curent_pin) + "L"
         arduino.write(bytes(comand_but2, 'utf-8'))
+        print("BT - {} - L".format(curent_pin))
         time.sleep(1)
         # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
         data = str(arduino.readline().decode().strip('\r\n'))
@@ -135,13 +147,14 @@ def Serial_delivery(arduino, cur_action, curent_pin, sleep, sleep_dur):
             # Передаем сигнал о необходимости перевести в неактивное положение необходимую кнопку
             comand_but2 = str(curent_pin) + "L"
             arduino.write(bytes(comand_but2, 'utf-8'))
+            print("BT - {} - L".format(curent_pin))
             time.sleep(1)
             # Получаем ответ от платы Ардуино об удачной отправке данного сигнала
             data = str(arduino.readline().decode().strip('\r\n'))
             time.sleep(1)
             print(data, '\n')
             GUI.print_log("Номер пина распознанный на плате ", data)
-
+    return switches
 
 def Arduino_Serial(script_file_path, errs_path, Arduino_port):
     # Открываем файл сценария
@@ -150,6 +163,9 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
     config = configparser.ConfigParser()
     config.read("Config.ini")
 
+    # config = configparser.ConfigParser()
+    # config.read("Config.ini")
+    # python_path = config['Python']['path']
     # Выведем общее количество строк в файле
     print(len(re.findall(r"[\n']+?", open(script_file_path).read())))
     all_strings = len(re.findall(r"[\n']+?", open(script_file_path).read()))
@@ -199,7 +215,9 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
     GUI.print_log("Начало передачи сигналов")
     # Выполняем проходку по непустым строкам файла сценария
     for i in range(strings):
-
+        wrong_delay = 0
+        end_of_file = 0
+        sleep_dur = 0
         # Поиск численного значения в строке
         num = re.findall(r'\d+', str(lines[i]))
         false_pin = False
@@ -216,18 +234,22 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
                 cur_action = 0      # Текущей командой является нажатие кнопки
             elif (lines[i].count(sw[j])):
                 cur_action = 1      # Текущеу командой является переключение переключателя
-
+        if (lines[i].count(end[0])):
+            end_of_file = 1
         # Определяем наличие задержки по времени к данному действию
-        if (lines[i + 1].count(delay[0])) and (cur_action != 2):
-            sleep = 1
-            sleep_num = re.findall(r'\d+', str(lines[i + 1]))
-            for item in sleep_num:
-                sleep_dur = int(item)
+        if not(end_of_file):
+            if (lines[i + 1].count(delay[0])) and (cur_action != 2):
+                sleep = 1
+                sleep_num = re.findall(r'\d+', str(lines[i + 1]))
+                #i = i + 1
+                for item in sleep_num:
+                    sleep_dur += int(item)
 
-            # Обработка ошибки слишком большой длительности записи видео (с указанием конкретной строки)
-            if sleep_dur > 30:
-                delay_string = i + 1
-                errors_file.write("Длительность задержки не больше 30 секунд (строка: " + str(delay_string) + ")\n")
+                # Обработка ошибки слишком большой длительности записи видео (с указанием конкретной строки)
+                if sleep_dur > 30:
+                    delay_string = i + 1
+                    wrong_delay = 1
+                    errors_file.write("Длительность задержки не больше 30 секунд (строка: " + str(delay_string) + ")\n")
 
         # В случае, если строка не пустая, определяем верно ли указаны номера кнопок и переключателей
         if lines[i] != "\n" and lines[i] != "":
@@ -253,24 +275,26 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
 
             # Обработка команд управления
             # Обработка нажатия переключателя
-            if (cur_action):
+            if (cur_action == 1):
                 # Проверяем данную команду на предмет установленных задержек
-                if sleep:
+                if (sleep) and (not(wrong_delay)):
                     # Запускаем функцию передачи управляющего сигнала на плату Arduino
-                    Serial_delivery(arduino, 1, num[0], 1, sleep_dur)
+                    switches=Serial_delivery(arduino, 1, num[0], 1, sleep_dur)
                     current_commands += 1
-                else:
-                    Serial_delivery(arduino, 1, num[0], 0, 0)
+                    i += 1
+                    num[0] = 0
+                if not(lines[i].count(delay[0])):
+                    switches=Serial_delivery(arduino, 1, num[0], 0, 0)
                     current_commands += 1
 
             # Обработка нажатия кнопки
-            else:
+            elif (cur_action == 0):
                 # Проверяем данную команду на предмет установленных задержек
-                if sleep:
-                    Serial_delivery(arduino, 0, num[0], 1, sleep_dur)
+                if sleep and (not(wrong_delay)):
+                    switches=Serial_delivery(arduino, 0, num[0], 1, sleep_dur)
                     current_commands += 1
                 else:
-                    Serial_delivery(arduino, 0, num[0], 0, 0)
+                    switches=Serial_delivery(arduino, 0, num[0], 0, 0)
                     current_commands += 1
 
             # Определяем ключ окончания обработки файла сценария
@@ -279,7 +303,6 @@ def Arduino_Serial(script_file_path, errs_path, Arduino_port):
                 # Закрываем файл сценария пользователя
                 input_file.close()
                 # Выводим итоговое количество команд в файле сценария
-
                 break
     # Закрываем файл ошибок, и ещё раз закрываем файл сценария
     input_file.close()
@@ -396,16 +419,20 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
         print("Перенос файла прошивки\n")
         GUI.print_log("Перенос файла прошивки\n")
         shutil.copy(sof_path, users_dir + "/" + "Report" + "/" + sof_file_name)
-        time.sleep(1)
+        time.sleep(3)
         os.remove(sof_path)
 
+    # for root, dirs, files in os.walk(users_dir):
+    #     for dir in dirs:
+    #         if dir != "Report":
+    #             os.chmod(root + '/' + dir, stat.S_IWRITE)
+    #             os.remove(root + '/' + dir)
     # print(vid_chek, '\n')
     i = 0
     video_path = root_path + "/video/output.mp4"
     video_dir = root_path + "/video"
     copy_dst = root_path + "/" + User_path_to_file + "/Report/output.mp4"
     vid_exists = True
-
     # Производим проверку окончания записи видео
     while vid_exists:
         print(video_return)
@@ -691,6 +718,7 @@ def Launch(User_path_to_file, root_path):
 
     # Читаем из файла конфигурации текущую папку проекта
     root_path = config['Direc']['Path']
+    python_path = config['Python']['path']
 
     print(root_path)
 
@@ -772,7 +800,8 @@ def Launch(User_path_to_file, root_path):
                         sleep_dur = 30
                     print("Очередной слип на", sleep_dur)
                     sleep_timing = sleep_timing + sleep_dur
-            strings = strings * 2
+            strings = strings
+
             # Выводим суммарные тайминги
             print("Время записи видео благодаря командам: ", strings)
             GUI.print_log("Время записи видео благодаря командам: ", strings)
@@ -780,8 +809,8 @@ def Launch(User_path_to_file, root_path):
             GUI.print_log("Суммарное время слипов: ", sleep_timing)
             strings = strings + sleep_timing
             # Длительностт видео не может быть больше 2 минут
-            if strings > 240:
-                strings = 240
+            if strings > 120:
+                strings = 120
             # Выводим суммарное время записи видео
             print("Суммарное время записи видео: ", strings)
             GUI.print_log("Суммарное время записи видео: ", strings)
@@ -789,14 +818,17 @@ def Launch(User_path_to_file, root_path):
             # Создаем файл временных параметров записи видео
             video_file = open("video_timing.txt", "w")
             # Записываем в данный файо необходимую длительность видео
-            video_file.write(str(strings * 2))
+            video_file.write(str(strings))
             video_file.close()
             input_file.close()
             time.sleep(1)
 
             # Запускаем функцию записи видео
             video_script_path = root_path + '/' + "Video.py"
-            python_path = "C:/Users/grish/AppData/Local/Programs/Python/Python38/python.exe"
+            #python_path = "C:/Users/grish/AppData/Local/Programs/Python/Python38/python.exe"
+            print("---------------------------------------------------------------------------------------------------")
+            print("PYTHON _PATH = ", python_path)
+            print("---------------------------------------------------------------------------------------------------")
             Video_chek = subprocess.Popen([python_path, video_script_path])
 
             # Запускаем функцию последовательной передачи управляющих команд на плату Ардуино
@@ -922,9 +954,8 @@ def Launch(User_path_to_file, root_path):
                 # for folders, file in os.listdir(folder_send):
                 #     if file.endswith("zip"):
                 #         file_path = folder_send + "/" + file
-                print("ТА САМАЯ ЕБАЛА---------------------------------------------")
+                print("Тот самый путь---------------------------------------------")
                 print(folder_send)
-                print("Конец ебалы---------------------------------------------\n")
                 folder_send = "C:/Project_930/Project_main/Archived"
                 file_path = Find_files_by_ext(folder_send, "zip")
 

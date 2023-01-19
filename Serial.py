@@ -91,7 +91,7 @@ if os.path.exists(file_path):
         num = re.findall(r'\d+', str(lines[i]))
         false_pin = False
         # #if (i != all_strings):
-        #     #if (int(lines[i][-2]) > 8) or (int(lines[i][-2]) < 1):
+        #     #if (int(lines[i][-2]) > 8) or (intвудфн(lines[i][-2]) < 1):
         # print(num)
         if (lines[i] != "\n"):
             print(num[0])
