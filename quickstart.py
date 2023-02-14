@@ -214,7 +214,7 @@ def change_status(my_id, status_change):
         GUI.print_log("Текущий статус ", my_id)
         cur.execute(sql, (status_change, my_id))
         con.commit()
-    return ('OK', time.time())
+    return ('OK', format_time())
 
 
 def check_stat_for_downloading(my_id):
@@ -256,13 +256,24 @@ def clear_all(my_id):
         con.commit()
     return ('OK')
 
+def format_time():
+    t = datetime.datetime.now()
+    s = t.strftime('%Y-%m-%d %H:%M:%S.%f')
+    head = s[:-7] # everything up to the '.'
+    tail = s[-7:] # the '.' and the 6 digits after it
+    # f = float(tail)
+    # temp = "{:.03f}".format(f)  # for Python 2.x: temp = "%.3f" % f
+    # new_tail = temp[1:] # temp[0] is always '0'; get rid of it
+    return head, t# + new_tail
 
 def write_current_time(id):  ##### Функция записи начала работы прошивки.
     con = connect()
     with con:
         cur = con.cursor()
         #dt_now = datetime.datetime.now()
-        dt_now = datetime.datetime.now().strftime('%y-%m-%d %a %H:%M:%S')
+        #dt_now = datetime.datetime.now().strftime('%y-%m-%d %a %H:%M:%S')[:-6]
+        dt_now = format_time()
+        #dt_now = dt_now[:-6]
         try:
             sql = ("""UPDATE status
                                            SET start_time = %s
@@ -320,7 +331,8 @@ def log_upload(stat_work_time, sts_3_time, sts_4_time, sts_5_time, fin_time, typ
 
 def sub_main(service, root_path, GLOBAL_PC_ID):
     while True:
-        start_time = time.time()
+        start_time, ttime = format_time()
+        start_time_in_sec = time.time()
         # os.chdir(root_path)
         file_id, email = check_stat_for_downloading(GLOBAL_PC_ID)
         if (file_id != 0) and (email != 0):
@@ -344,13 +356,13 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
             GUI.print_log("LAUNCH_STAT = ", launch_stat)
             if launch_stat == "OK":
                 # new_users_dir = "C:\PROJECT_930\Prototype_new_2\Archived"
+                stat_5 = change_status(GLOBAL_PC_ID, 5)[1]
                 print(send_email(addr_to=email,  # "sasha.lorens@yandex.ru",
                                  msg_subj="Ваша прошивка",
                                  msg_text="Ваши файлы",
                                  files='',
                                  URL=URL,
                                  errors_ = errors_))
-                stat_5 = change_status(GLOBAL_PC_ID, 5)[1]
                 if path_firmware == "":
                     main_dir = root_path + '/' + 'student_zip'
                 else:
@@ -358,7 +370,7 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
             if path_firmware != '':
                 file_path = root_path + "/" + path_firmware
                 file_size = os.path.getsize(file_path)  ##!!!!!!!!!!!!!!
-                log_upload(start_time, stat_3, stat_4, stat_5, time.time(), pr_type, command_num,
+                log_upload(start_time, stat_3, stat_4, stat_5, format_time(), pr_type, command_num,
                            file_size, email)
             if main_dir != root_path or main_dir != root_path + '/':
                 for dirs in os.listdir(main_dir):
@@ -369,7 +381,13 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
                 #GUI.print_log("SDFKMSJKFZNKLJFSRHFSRZBLHJFSBRGFLBHGRHLG RSG SRHLJG RLHGJD BGHLJDLJHG")
             clear_all(GLOBAL_PC_ID)
             empty(confirm=False, show_progress=True, sound=True)
-        GUI.print_log("--- %s seconds ---" % (time.time() - start_time))
+        final_time = datetime.datetime.now()
+        dd = final_time - ttime
+        #print("DAYS DIFF", dd.days)  # get days
+        print("SECONDS DIFF", dd.seconds)  # get seconds
+        #print("MILESECIND DIFF", dd.microseconds)  # get microseconds
+        #print("MINUTES DIFF", int(round(dd.total_seconds() / 60, 0)))  # get minutes
+        GUI.print_log("--- %s seconds ---" % (time.time() - start_time_in_sec))
         while GUI.flag_stop:
             time.sleep(1)
         time.sleep(20)
