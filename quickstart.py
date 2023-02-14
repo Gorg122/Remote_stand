@@ -136,6 +136,7 @@ def file_download(my_id, email_name):
     with con:
         cur = con.cursor()
         # try:
+        #------------------------ЗАГРУЗКА АРХИВА С ФАЙЛАМИ ПОЛЬЗОВАТЕЛЯ ИЗ БАЗЫ ДАННЫХ НА УПРАВЛЯЮЩЕМ СТЕНДЕ---------------------------------------- 
         sql = ("""SELECT soc_zip
                   FROM status
                   WHERE id = %s""")
@@ -191,7 +192,7 @@ def file_downloader(service, value_id, email_name, root_path):
     zip_file.extractall(root_path + '/student_zip/' + email_short_name)
     return path_firmware
 
-
+#------------------------------------------------ФУНКЦИЯ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ НА УПРАВЛЯЮЩЕМ СТЕНДЕ--------------------------
 def connect():
     con = pymysql.connect(host='DESKTOP-CG9VKI4',
                           port=3306,
@@ -201,7 +202,7 @@ def connect():
                           cursorclass=pymysql.cursors.DictCursor)
     return con
 
-
+#---------------------------------------------------ФУНКЦИЯ ИЗМЕНЕНИЯ СТАТУСА КОМПЬЮТЕРА В БАЗЕ ДАННЫХ НА УПРАВЛЯЮЩЕМ СТЕНДЕ------------------
 def change_status(my_id, status_change):
     con = connect()
     with con:
@@ -216,7 +217,7 @@ def change_status(my_id, status_change):
         con.commit()
     return ('OK', time.time())
 
-
+#------------------------------------ФУНКЦИЯ ПРОВЕРКИ СТАТУСА ПЕРЕД НАЧАЛОМ ЗАГРУЗКИ ФАЙЛОВ
 def check_stat_for_downloading(my_id):
     con = connect()
     with con:
@@ -234,6 +235,7 @@ def check_stat_for_downloading(my_id):
             print(id_for_download)
             GUI.print_log("Id файла для загрузки ", id_for_download)
             global stat_3
+            #-----------------------ИЗМЕНЕНИЕ СТАТУСА НА "3" - ПРОШИВКА ПРИНЯТА В РАБОТУ(СТЕНД ЗАНЯТ)
             stat_3 = change_status(my_id, 3)[1]
             # change_status_log(4)
             return id_for_download, email_for_download
@@ -244,7 +246,7 @@ def check_stat_for_downloading(my_id):
             print('nothing')
             GUI.print_log("nothing")
 
-
+#--------------------------ФУНКЦИЯ ИЗМЕНЕНИЯ СТАТУСА НА "1" ПОСЛЕ ЗАВЕРШЕНИЯ ПРОЦЕССА ОБРАБОТКИ ФАЙЛОВ ПОЛЬЗОВАТЕЛЯ(СТЕНД СВОБОДЕН)------------
 def clear_all(my_id):
     con = connect()
     with con:
@@ -256,7 +258,7 @@ def clear_all(my_id):
         con.commit()
     return ('OK')
 
-
+#--------------------------------ФУНКЦИЯ ЗАПИСИ ВРЕМЕНИ НАЧАЛА ОБРАБОТКИ ПРОШИВКИ ПОЛЬЗОВАТЕЛЯ
 def write_current_time(id):  ##### Функция записи начала работы прошивки.
     con = connect()
     with con:
@@ -295,7 +297,7 @@ def empty(confirm, show_progress, sound):
         print("Корзина пуста")
         GUI.print_log("Корзина пуста")
 
-
+#--------------------------------ФУНКЦИЯ ЗАПИСИ СТАТИСТИКИ ПО ОБРАБОТКЕ ФАЙЛОВ ПОЛЬЗОВАТЕЛЯ В БАЗУ ДАННЫХ
 def log_upload(stat_work_time, sts_3_time, sts_4_time, sts_5_time, fin_time, type_pr, comm_numm, file_size, email):
     con = connect()
     with con:
@@ -332,6 +334,7 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
             else:
                 path_firmware = file_downloader(service, file_id, email, root_path)
                 file_delliter(file_id, service)
+            #------------------------ФУНКЦИЯ ИЗМЕНЕНИЯ СТАТУСА УДАЛЕННОГО СТЕНДА НА "4" (ЗАГРУЗКА ФАЙЛОВ ПРОШЛА УСПЕШНО, НАЧАЛО ОБРАБОТКИ)-----
             stat_4 = change_status(GLOBAL_PC_ID, 4)[1]
             write_current_time(GLOBAL_PC_ID)
 
@@ -350,6 +353,7 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
                                  files='',
                                  URL=URL,
                                  errors_ = errors_))
+                #------------------ИЗМЕНЕНИЕ СТЕНДА НА СТАТУС "5" (ОТПРАВКА ОТВЕТНОГО ПИСЬМА ПОЛЬЗОВАТЕЛЮ)-------------
                 stat_5 = change_status(GLOBAL_PC_ID, 5)[1]
                 if path_firmware == "":
                     main_dir = root_path + '/' + 'student_zip'
@@ -390,7 +394,7 @@ def Find_files_by_ext(dir_path, file_ext):
                 return filepath
             else:
                 return 0
-
+#-----------------------------------------ГЛАВНАЯ ФУНКЦИЯ В КОТОРОЙ ЗАПУСКАЮТСЯ ВСЕ ДОЧЕРНИЕ ФУНКЦИИ
 def CAD_LOOP():
     service = main()
     GUI.print_log("Начало работы")
