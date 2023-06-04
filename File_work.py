@@ -956,7 +956,7 @@ def Launch(User_path_to_file, root_path):
                 #         file_path = folder_send + "/" + file
                 print("Тот самый путь---------------------------------------------")
                 print(folder_send)
-                folder_send = "C:/Project_930/Project_main/Archived"
+                folder_send = "C:/Project_930/Project_main/Archived/" + mail_name
                 file_path = Find_files_by_ext(folder_send, "zip")
 
                 # Получаем ссылку на скачивание данного архива
