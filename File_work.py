@@ -7,7 +7,8 @@ import sys
 import subprocess
 import configparser
 import pprint
-import win32com.client
+# import win32com.client
+#import win32com.client as client
 import stat
 from datetime import date
 from dateutil import parser
@@ -828,6 +829,7 @@ def Launch(User_path_to_file, root_path):
             #python_path = "C:/Users/grish/AppData/Local/Programs/Python/Python38/python.exe"
             print("---------------------------------------------------------------------------------------------------")
             print("PYTHON _PATH = ", python_path)
+            print("VIDEO_SCRIPT_PATH = ", video_script_path)
             print("---------------------------------------------------------------------------------------------------")
             Video_chek = subprocess.Popen([python_path, video_script_path])
 

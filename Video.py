@@ -1,7 +1,8 @@
 import os
 
-import cv2
 import time
+import cv2
+
 
 def Video():
     #cap = cv2.VideoCapture(0)
@@ -74,5 +75,5 @@ def Video():
     done_chek.write("done")
     done_chek.close()
     quit()
-#if __name__ == '__main__':
-Video()
+if __name__ == '__main__':
+    Video()

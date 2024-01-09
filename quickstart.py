@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import shutil
-
+import cv2
 import httplib2
 import os
 import os.path
@@ -11,11 +11,26 @@ import zipfile
 from googleapiclient.http import MediaIoBaseDownload
 from apiclient import discovery
 from googleapiclient import discovery
+from google.oauth2 import service_account
+from google_auth_oauthlib.flow import InstalledAppFlow
 # import googleapiclient.discovery
 # from gooleapiclient.discovery import build
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+
+
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2 import service_account
+
+
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 
 import GUI
@@ -26,7 +41,8 @@ import datetime
 import time
 import sys
 from save_def import *
-from win32com.shell import shell, shellcon  # Импортируем энкодер
+# from win32com.shell import shell, shellcon  # Импортируем энкодер
+#from pywin32 import win32shell as shell
 from File_work import *  ## Исспользуются переменные:
 from GUI import *
 
@@ -79,40 +95,67 @@ except ImportError:
     flags = None
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-#CLIENT_SECRET_FILE = 'ul_cad_1.json'
-CLIENT_SECRET_FILE = 'client_secret_Petukhov.json'
+# SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+SCOPES = ['https://www.googleapis.com/auth/drive']
+CLIENT_SECRET_FILE = 'ul_cad_1.json'
+# CLIENT_SECRET_FILE = 'client_secret_Petukhov.json'
 APPLICATION_NAME = 'Drive API Python Quickstart'
 
-
 def get_credentials():
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    #credential_path = os.path.join(credential_dir,
-    #                              'drive-python-quickstart2.json')
-    credential_path = os.path.join(credential_dir,
-                                    'ul_cad_1.json')
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else:  # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
-        GUI.print_log('Storing credentials to ' + credential_path)
+    credentials = service_account.Credentials.from_service_account_file('ulcad930-77c72048684c.json', scopes=[
+        'https://www.googleapis.com/auth/drive'])
     return credentials
+# def get_credentials():
+#     home_dir = os.path.expanduser('~')
+#     # credential_dir = os.path.join(home_dir, '.credentials')
+#     credential_dir = 'C:/Project_930/Project_main/'
+#     if not os.path.exists(credential_dir):
+#         os.makedirs(credential_dir)
+#     #credential_path = os.path.join(credential_dir,
+#     #                              'drive-python-quickstart2.json')
+#     # credential_path = os.path.join(credential_dir, 'Service_account.json')
+#     # credential_path = credential_dir + 'Service_account.json'
+#     credential_path = credential_dir + 'ul_cad_1.json'
+#     print(credential_path)
+#     store = Storage(credential_path)
+#     credentials = store.get()
+#     if not credentials or credentials.invalid:
+#         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+#         flow.user_agent = APPLICATION_NAME
+#         if flags:
+#             credentials = tools.run_flow(flow, store, flags)
+#         else:  # Needed only for compatibility with Python 2.6
+#             credentials = tools.run(flow, store)
+#         print('Storing credentials to ' + credential_path)
+#     return credentials
+    # store = Storage(credential_path)
+    # credentials = store.get()
+    # # credentials = None
+    # if not credentials or credentials.invalid:
+    #     # flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+    #     # flow = InstalledAppFlow.from_client_secrets_file(
+    #     #     CLIENT_SECRET_FILE, SCOPES)
+    #     credentials = service_account.Credentials.from_service_account_file(
+    #         CLIENT_SECRET_FILE, scopes=SCOPES)
+    #     # flow.user_agent = APPLICATION_NAME
+    #     # if flags:
+    #     #     credentials = tools.run_flow(flow, store, flags)
+    #     # else:  # Needed only for compatibility with Python 2.6
+    #     #     credentials = tools.run(flow, store)
+    #     print('Storing credentials to ' + credential_path)
+    #     GUI.print_log('Storing credentials to ' + credential_path)
+    # else:
+    #     print("CREDENTIALS BROKEN")
+    # return credentials
+
 
 
 def main():
     credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
+    # http = credentials.authorize(httplib2.Http())
     print("TG")
-    service = discovery.build("drive", "v3", http=http, static_discovery=False)
+    # service = build("drive", "v3", http=http, static_discovery=False)
+    service = build("drive", "v3", credentials=credentials)
     return service
     # path_firmware = file_downloader(service, id, email)
     # file_delliter(id, service)
@@ -292,24 +335,24 @@ def write_current_time(id):  ##### Функция записи начала ра
             GUI.print_log("Не работает")
 
 
-def empty(confirm, show_progress, sound):
-    recycle_bin_path = "C:\$RECYCLE.BIN"
-    for files in os.listdir(recycle_bin_path):
-        print(files)
-    try:
-        flags = 0
-        if not confirm:
-            flags |= shellcon.SHERB_NOCONFIRMATION
-        if not show_progress:
-            flags |= shellcon.SHERB_NOPROGRESSUI
-        if not sound:
-            flags |= shellcon.SHERB_NOSOUND
-        shell.SHEmptyRecycleBin(None, None, flags)
-        print("Корзина очищена")
-        GUI.print_log("Корзина очищена")
-    except:
-        print("Корзина пуста")
-        GUI.print_log("Корзина пуста")
+# def empty(confirm, show_progress, sound):
+#     recycle_bin_path = "C:\$RECYCLE.BIN"
+#     for files in os.listdir(recycle_bin_path):
+#         print(files)
+#     try:
+#         flags = 0
+#         if not confirm:
+#             flags |= shellcon.SHERB_NOCONFIRMATION
+#         if not show_progress:
+#             flags |= shellcon.SHERB_NOPROGRESSUI
+#         if not sound:
+#             flags |= shellcon.SHERB_NOSOUND
+#         shell.SHEmptyRecycleBin(None, None, flags)
+#         print("Корзина очищена")
+#         GUI.print_log("Корзина очищена")
+#     except:
+#         print("Корзина пуста")
+#         GUI.print_log("Корзина пуста")
 
 #--------------------------------ФУНКЦИЯ ЗАПИСИ СТАТИСТИКИ ПО ОБРАБОТКЕ ФАЙЛОВ ПОЛЬЗОВАТЕЛЯ В БАЗУ ДАННЫХ
 def log_upload(stat_work_time, sts_3_time, sts_4_time, sts_5_time, fin_time, total_time, type_pr, comm_numm, file_size, email):
@@ -405,7 +448,7 @@ def sub_main(service, root_path, GLOBAL_PC_ID):
                 print("SDFKMSJKFZNKLJFSRHFSRZBLHJFSBRGFLBHGRHLG RSG SRHLJG RLHGJD BGHLJDLJHG")
                 #GUI.print_log("SDFKMSJKFZNKLJFSRHFSRZBLHJFSBRGFLBHGRHLG RSG SRHLJG RLHGJD BGHLJDLJHG")
             clear_all(GLOBAL_PC_ID)
-            empty(confirm=False, show_progress=True, sound=True)
+            #empty(confirm=False, show_progress=True, sound=True)
 
         #print("MILESECIND DIFF", dd.microseconds)  # get microseconds
         #print("MINUTES DIFF", int(round(dd.total_seconds() / 60, 0)))  # get minutes
