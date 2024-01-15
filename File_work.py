@@ -430,8 +430,7 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
     #             os.remove(root + '/' + dir)
     # print(vid_chek, '\n')
     i = 0
-    video_path = root_path + "/video/output.mp4"
-    video_dir = root_path + "/video"
+    video_path = root_path + "/video/video.mp4"
     copy_dst = root_path + "/" + User_path_to_file + "/Report/output.mp4"
     vid_exists = True
     # Производим проверку окончания записи видео
@@ -898,22 +897,25 @@ def Launch(User_path_to_file, root_path):
         pp = pprint.PrettyPrinter(indent=4)
 
     # Указание адреса авторизации
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-
-    # Проверяем наличие файла токена
-    token_name = 'ul_cad_1.json'
-    token_path = root_path + '/' + token_name
-    if not (os.path.exists(token_path)):
-        for root, dirs, files in os.walk('C:/'):
-            if files.find(token) != -1:
-                token_path = root + '/' + files
-    elif os.path.exists(token_path):
-        SERVICE_ACCOUNT_FILE = token_path
-
-        # Подключаемся к соответствующему сервису с помощью сервисного аккаунта Google
-        credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        service = build('drive', 'v3', credentials=credentials, static_discovery=False)
+    # SCOPES = ['https://www.googleapis.com/auth/drive']
+    #
+    # # Проверяем наличие файла токена
+    # token_name = 'ul_cad_1.json'
+    # token_path = root_path + '/' + token_name
+    # if not (os.path.exists(token_path)):
+    #     for root, dirs, files in os.walk('C:/'):
+    #         if files.find(token) != -1:
+    #             token_path = root + '/' + files
+    # elif os.path.exists(token_path):
+    #     SERVICE_ACCOUNT_FILE = token_path
+    #
+    #     # Подключаемся к соответствующему сервису с помощью сервисного аккаунта Google
+    #     credentials = service_account.Credentials.from_service_account_file(
+    #         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    #     service = build('drive', 'v3', credentials=credentials, static_discovery=False)
+        credentials = service_account.Credentials.from_service_account_file('C:/Project_930/Project_main/ulcad930-77c72048684c.json', scopes=[
+            'https://www.googleapis.com/auth/drive'])
+        service = build("drive", "v3", credentials=credentials)
 
         # Запускаем функцию определения главной папки
         main_folder_id = Get_main_folder_id(service=service)
@@ -966,8 +968,8 @@ def Launch(User_path_to_file, root_path):
                 print("Ссылка на файл = ", file_link)
                 GUI.print_log("Ссылка на файл = ", file_link)
                 upload_file = False
-            delete_chek = Old_files_delete(main_folder_id, service)
-            print(delete_chek)
+            # delete_chek = Old_files_delete(main_folder_id, service)
+            # print(delete_chek)
             upload_file = False
             # except:
             #     print("Неудача при загрузке файлов на Google Drive")
