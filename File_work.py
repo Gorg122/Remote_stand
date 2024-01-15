@@ -22,6 +22,7 @@ from Google_drive_upload import File_upload
 from Google_drive_upload import Folder_create
 from Google_drive_upload import Get_main_folder_id
 from Google_drive_upload import Old_files_delete
+from Video import get_data_from_video
 
 # Счетчик комманд пользователя
 global command_num
@@ -851,6 +852,7 @@ def Launch(User_path_to_file, root_path):
             print("Запись видео возвращает:", Video_chek.returncode)
             GUI.print_log("Запись видео возвращает:", Video_chek.returncode)
             returncode = Video_chek.returncode
+            massive_of_diodes = get_data_from_video()
         # Если отсутствует файл прошивки или проект на ПЛИС, ошибка записывается в файл ошибок
         else:
             errors_file.write("Отсутствует файл прошивки или проект на ПЛИС\n")
@@ -960,7 +962,7 @@ def Launch(User_path_to_file, root_path):
                 #         file_path = folder_send + "/" + file
                 print("Тот самый путь---------------------------------------------")
                 print(folder_send)
-                folder_send = "C:/Project_930/Project_main/Archived/" + mail_name
+                folder_send = "C:/Project_930/Project_main_with_web/Remote_stand/" + mail_name
                 file_path = Find_files_by_ext(folder_send, "zip")
 
                 # Получаем ссылку на скачивание данного архива
