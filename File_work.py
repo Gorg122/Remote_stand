@@ -22,6 +22,7 @@ from Google_drive_upload import File_upload
 from Google_drive_upload import Folder_create
 from Google_drive_upload import Get_main_folder_id
 from Google_drive_upload import Old_files_delete
+from Video import get_data_from_video
 
 # Счетчик комманд пользователя
 global command_num
@@ -331,11 +332,11 @@ def File_empty_chek(users_dir, file_name):
 def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_file_name, script_file_name,
                 video_return):
     # Формируем переменную пути по текущей папке пользвоателя
-    users_dir = root_path + '/' + User_path_to_file
-
+    # users_dir = root_path + '/' + User_path_to_file
+    users_dir = root_path
     # Если архив с файлами не удален, удаляем его
-    if os.path.exists(root_path + '/' + User_path_to_file + "/filename.zip"):
-        os.remove(root_path + '/' + User_path_to_file + "/filename.zip")
+    # if os.path.exists(root_path + '/' + User_path_to_file + "/filename.zip"):
+    #     os.remove(root_path + '/' + User_path_to_file + "/filename.zip")
 
     # Изменяем текущую директорию на директорию пользователя
     os.chdir(users_dir)
@@ -352,20 +353,15 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
 
     # Читаем каждый файл и записываем их данные в отдельную переменную
     chek_errors_file, er_name = File_empty_chek(users_dir, 'errors.txt')
-    chek_compil_file, log_name = File_empty_chek(users_dir, "Proj_compil_result.txt")
     chek_JTAG_file, config_file = File_empty_chek(users_dir, "JTAG_config.txt")
 
     # Создаем переменные путей к файлам ошибок, отчета компиляции, и отчета прошивки платы ПЛИС
     errs_file_path = users_dir + "/" + er_name
-    compil_path = users_dir + "/" + log_name
     config_path = users_dir + "/" + config_file
 
     # Если файлы пустые, удаляем их
     if chek_errors_file == "" and os.path.exists(errs_file_path):
         os.remove(errs_file_path)
-
-    if chek_compil_file == "" and os.path.exists(compil_path):
-        os.remove(compil_path)
 
     if chek_JTAG_file == "" and os.path.exists(config_path):
         os.remove(config_path)
@@ -384,15 +380,6 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
         shutil.copy(errs_file_path, users_dir + "/" + "Report" + "/" + er_name)
         time.sleep(1)
         os.remove(errs_file_path)
-
-    print("File_compil = " + log_name)
-    GUI.print_log("File_compil = " + log_name)
-    if os.path.exists(compil_path):
-        print("Перенос файла отчета компиляции\n")
-        GUI.print_log("Перенос файла отчета компиляции\n")
-        shutil.copy(compil_path, users_dir + "/" + "Report" + "/" + log_name)
-        time.sleep(1)
-        os.remove(compil_path)
 
     print("Config file = " + config_file)
     GUI.print_log("Config file = " + config_file)
@@ -430,9 +417,8 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
     #             os.remove(root + '/' + dir)
     # print(vid_chek, '\n')
     i = 0
-    video_path = root_path + "/video/output.mp4"
-    video_dir = root_path + "/video"
-    copy_dst = root_path + "/" + User_path_to_file + "/Report/output.mp4"
+    video_path = root_path + "/video/video.mp4"
+    copy_dst = root_path + "/" + "Report/video.mp4"
     vid_exists = True
     # Производим проверку окончания записи видео
     while vid_exists:
@@ -467,26 +453,29 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
 
         else:
             i += 1
-    return "OK"
+        pixel_massive = get_data_from_video()
+
+    return "OK", pixel_massive
+
 
 # Функция удаления ненужных файлов после окончания обработки прошивки пользователя
 
-def Files_to_archive(path_to_dir, user_name, for_delivery, users_dir):
-    new_path = path_to_dir + '/' + user_name
-    # В случае если папка копирования существует, создаем в ней архив с файлами
-    if os.path.exists(new_path):
-        shutil.rmtree(new_path)
-        os.makedirs(new_path)
-        os.chdir(new_path)
-        shutil.make_archive("result", 'zip', users_dir)
-        if for_delivery:
-            folder_send = "" + new_path
-            return folder_send
-    # В случае, если папка пользователя не существует, создаем ее и архив файлов
-    else:
-        os.makedirs(new_path)
-        os.chdir(new_path)
-        shutil.make_archive("result", 'zip', users_dir)
+# def Files_to_archive(path_to_dir, user_name, for_delivery, users_dir):
+#     new_path = path_to_dir + '/' + user_name
+#     # В случае если папка копирования существует, создаем в ней архив с файлами
+#     if os.path.exists(new_path):
+#         shutil.rmtree(new_path)
+#         os.makedirs(new_path)
+#         os.chdir(new_path)
+#         shutil.make_archive("result", 'zip', users_dir)
+#         if for_delivery:
+#             folder_send = "" + new_path
+#             return folder_send
+#     # В случае, если папка пользователя не существует, создаем ее и архив файлов
+#     else:
+#         os.makedirs(new_path)
+#         os.chdir(new_path)
+#         shutil.make_archive("result", 'zip', users_dir)
 
 def Delete_files(root_path, User_path_to_file):
     users_dir = root_path + '/' + User_path_to_file
@@ -803,18 +792,11 @@ def Launch(User_path_to_file, root_path):
                     sleep_timing = sleep_timing + sleep_dur
             strings = strings
 
-            # Выводим суммарные тайминги
-            print("Время записи видео благодаря командам: ", strings)
-            GUI.print_log("Время записи видео благодаря командам: ", strings)
-            print("Суммарное время слипов: ", sleep_timing)
-            GUI.print_log("Суммарное время слипов: ", sleep_timing)
-            strings = strings + sleep_timing
+            # Выводим суммарные тайминг
             # Длительностт видео не может быть больше 2 минут
             if strings > 120:
                 strings = 120
             # Выводим суммарное время записи видео
-            print("Суммарное время записи видео: ", strings)
-            GUI.print_log("Суммарное время записи видео: ", strings)
 
             # Создаем файл временных параметров записи видео
             video_file = open("video_timing.txt", "w")
@@ -852,39 +834,20 @@ def Launch(User_path_to_file, root_path):
             print("Запись видео возвращает:", Video_chek.returncode)
             GUI.print_log("Запись видео возвращает:", Video_chek.returncode)
             returncode = Video_chek.returncode
-        # Если отсутствует файл прошивки или проект на ПЛИС, ошибка записывается в файл ошибок
-        else:
-            errors_file.write("Отсутствует файл прошивки или проект на ПЛИС\n")
-            errors_ = 1
-            # Задаем пустые значения переменных если файла прошивки нет
-            sof_file_name = ""
-            sof_path = ""
-    # Если отсутствует файл сценария, ошибка записывается в файл ошибок
-    else:
-        errors_file.write("Отправте данные повторно, включая файл сценария\n")
-        errors_ = 1
-        # Задаем соответствующие значения переменных, если отсутствует файл сценария
-        returncode = 1
-        script_file_path = ""
-        script_file_name = ""
-        sof_file_name = ""
-        sof_path = ""
+            massive_of_diodes = get_data_from_video()
 
-    # Закрываем файл ошибок
-    errors_file.close()
+     os.chdir("Return")
 
-    # Повторно перепроверяем наличие файла прошивки
-    if not (os.path.exists(sof_path)):
-        sof_path = "#"
-        sof_name = "#"
+    @app.post('/file')
+    def file_upload():
+        url = "http://127.0.0.1:8000/file"
+        files = {'buttons': open('buttons.txt', 'rb'),
+                 'log': open('JTAG_config.txt', 'rb'),
+                 'video': open('video.mp4', 'rb')}
+        res = requests.post(url, files=files)
+        if res.ok:
+            print("It`s okay")
 
-    # Запускаем функцию копирования файлов отчетности
-    if not(User_path_to_file == ""):
-        file_work = File_switch(User_path_to_file=User_path_to_file, root_path=root_path,
-                                sof_path=sof_path, script_file_path=script_file_path,
-                                sof_file_name=sof_file_name,
-                                script_file_name=script_file_name,
-                                video_return=returncode)
 
     # Запускаем функциб удаления лишних файлов
     if User_path_to_file != '':
@@ -897,84 +860,71 @@ def Launch(User_path_to_file, root_path):
         GUI.print_log("Результат очистки архива = ", file_delete)
         pp = pprint.PrettyPrinter(indent=4)
 
-    # Указание адреса авторизации
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-
-    # Проверяем наличие файла токена
-    token_name = 'ul_cad_1.json'
-    token_path = root_path + '/' + token_name
-    if not (os.path.exists(token_path)):
-        for root, dirs, files in os.walk('C:/'):
-            if files.find(token) != -1:
-                token_path = root + '/' + files
-    elif os.path.exists(token_path):
-        SERVICE_ACCOUNT_FILE = token_path
-
-        # Подключаемся к соответствующему сервису с помощью сервисного аккаунта Google
-        credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        service = build('drive', 'v3', credentials=credentials, static_discovery=False)
-
-        # Запускаем функцию определения главной папки
-        main_folder_id = Get_main_folder_id(service=service)
-        print("Id главной папки = ", main_folder_id)
-        GUI.print_log("Id главной папки = ", main_folder_id)
-        if User_path_to_file == "":
-            mail_name = "error_folder"
-        else:
-            mail_name = User_path_to_file.split('/', 2)[1]
-        upload_file = True
-        # Запускаем процесс загрузки файлов до положительного исхода
-        while upload_file:
-            #try:
-            # Запускаем функцию создания папки пользователя
-            folder_id = Folder_create(service=service, Users_drive=mail_name, main_folder_id=main_folder_id)
-            print("Id текущей папки = ", folder_id)
-            # Выгружаем файлы из папки, содержащей итоговый архив
-            if User_path_to_file == "":
-                err_path = root_path + '/student_zip/error.txt'
-                err_dir = root_path + '/student_zip'
-                error = open(err_path, 'w')
-                error.write("Проблема с обработкой архива в письме.\n Отправьте архив в формате zip")
-                error.close()
-                error_dir = root_path + '/Archived/Error'
-                os.mkdir(error_dir)
-                os.chdir(error_dir)
-                shutil.make_archive('result', 'zip', err_dir)
-                time.sleep(1)
-                file_link = File_upload(service=service, folder_id=folder_id, file_path=err_path)
-                os.chdir(root_path)
-                shutil.rmtree(error_dir)
-                main_dir = root_path + '/student_zip'
-                for root, dirs, files in os.walk(main_dir):
-                    for direc in dirs:
-                        shutil.rmtree(root + '/' + direc)
-                    for file in files:
-                        os.remove(root + '/' + file)
-                upload_file = False
-            else:
-                # for folders, file in os.listdir(folder_send):
-                #     if file.endswith("zip"):
-                #         file_path = folder_send + "/" + file
-                print("Тот самый путь---------------------------------------------")
-                print(folder_send)
-                folder_send = "C:/Project_930/Project_main/Archived/" + mail_name
-                file_path = Find_files_by_ext(folder_send, "zip")
-
-                # Получаем ссылку на скачивание данного архива
-                file_link = File_upload(service=service, folder_id=folder_id, file_path=file_path)
-                print("Ссылка на файл = ", file_link)
-                GUI.print_log("Ссылка на файл = ", file_link)
-                upload_file = False
-            delete_chek = Old_files_delete(main_folder_id, service)
-            print(delete_chek)
-            upload_file = False
-            # except:
-            #     print("Неудача при загрузке файлов на Google Drive")
-            #     GUI.print_log("Неудача при загрузке файлов на Google Drive")
-    else:
-        print("Отсутствует файл токена")
-        GUI.print_log("Отсутствует файл токена")
-    return ("OK", pr_type, command_num, file_link, errors_)
+    #
+    #     credentials = service_account.Credentials.from_service_account_file('C:/Project_930/Project_main/ulcad930-77c72048684c.json', scopes=[
+    #         'https://www.googleapis.com/auth/drive'])
+    #     service = build("drive", "v3", credentials=credentials)
+    #
+    #     # Запускаем функцию определения главной папки
+    #     main_folder_id = Get_main_folder_id(service=service)
+    #     print("Id главной папки = ", main_folder_id)
+    #     GUI.print_log("Id главной папки = ", main_folder_id)
+    #     if User_path_to_file == "":
+    #         mail_name = "error_folder"
+    #     else:
+    #         mail_name = User_path_to_file.split('/', 2)[1]
+    #     upload_file = True
+    #     # Запускаем процесс загрузки файлов до положительного исхода
+    #     while upload_file:
+    #         #try:
+    #         # Запускаем функцию создания папки пользователя
+    #         folder_id = Folder_create(service=service, Users_drive=mail_name, main_folder_id=main_folder_id)
+    #         print("Id текущей папки = ", folder_id)
+    #         # Выгружаем файлы из папки, содержащей итоговый архив
+    #         if User_path_to_file == "":
+    #             err_path = root_path + '/student_zip/error.txt'
+    #             err_dir = root_path + '/student_zip'
+    #             error = open(err_path, 'w')
+    #             error.write("Проблема с обработкой архива в письме.\n Отправьте архив в формате zip")
+    #             error.close()
+    #             error_dir = root_path + '/Archived/Error'
+    #             os.mkdir(error_dir)
+    #             os.chdir(error_dir)
+    #             shutil.make_archive('result', 'zip', err_dir)
+    #             time.sleep(1)
+    #             file_link = File_upload(service=service, folder_id=folder_id, file_path=err_path)
+    #             os.chdir(root_path)
+    #             shutil.rmtree(error_dir)
+    #             main_dir = root_path + '/student_zip'
+    #             for root, dirs, files in os.walk(main_dir):
+    #                 for direc in dirs:
+    #                     shutil.rmtree(root + '/' + direc)
+    #                 for file in files:
+    #                     os.remove(root + '/' + file)
+    #             upload_file = False
+    #         else:
+    #             # for folders, file in os.listdir(folder_send):
+    #             #     if file.endswith("zip"):
+    #             #         file_path = folder_send + "/" + file
+    #             print("Тот самый путь---------------------------------------------")
+    #             print(folder_send)
+    #             folder_send = "C:/Project_930/Project_main_with_web/Remote_stand/" + mail_name
+    #             file_path = Find_files_by_ext(folder_send, "zip")
+    #
+    #             # Получаем ссылку на скачивание данного архива
+    #             file_link = File_upload(service=service, folder_id=folder_id, file_path=file_path)
+    #             print("Ссылка на файл = ", file_link)
+    #             GUI.print_log("Ссылка на файл = ", file_link)
+    #             upload_file = False
+    #         # delete_chek = Old_files_delete(main_folder_id, service)
+    #         # print(delete_chek)
+    #         upload_file = False
+    #         # except:
+    #         #     print("Неудача при загрузке файлов на Google Drive")
+    #         #     GUI.print_log("Неудача при загрузке файлов на Google Drive")
+    # else:
+    #     print("Отсутствует файл токена")
+    #     GUI.print_log("Отсутствует файл токена")
+    # return ("OK", pr_type, command_num, file_link, errors_)
 
 # Launch(User_path_to_file="student_zip/grisha.petuxov", root_path="C:/Project_930/Prototype_with_mail_bot_TO_EXE")

@@ -1,0 +1,12 @@
+but 1
+but2
+but3
+sw1
+delay 10
+sw 1
+sw 2
+sw 2
+sw 3
+sw 3
+delay 20
+end

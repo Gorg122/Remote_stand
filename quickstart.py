@@ -8,6 +8,7 @@ import os.path
 import io
 import zipfile
 
+
 from googleapiclient.http import MediaIoBaseDownload
 from apiclient import discovery
 from googleapiclient import discovery
@@ -44,6 +45,7 @@ from save_def import *
 # from win32com.shell import shell, shellcon  # Импортируем энкодер
 #from pywin32 import win32shell as shell
 from File_work import *  ## Исспользуются переменные:
+from Video import get_data_from_video
 from GUI import *
 
 thread = 0
