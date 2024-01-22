@@ -111,7 +111,7 @@ def Video():
     done_chek.close()
     # quit()
 def get_data_from_video():
-    video_path = 'video/video.mp4'
+    video_path = 'output.mp4'
     cap = cv2.VideoCapture(video_path)
 
     # Создайте окно для просмотра видео
@@ -293,6 +293,6 @@ def get_data_from_video():
     return diode_mask_new
 
 if __name__ == '__main__':
-    Video()
-    # kek = get_data_from_video()
-    # print(kek)
+    # Video()
+    kek = get_data_from_video()
+    print(kek)

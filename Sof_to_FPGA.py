@@ -3,7 +3,6 @@ import subprocess
 import configparser
 #from quickstart import Find_files_by_name, Find_files_by_ext
 import GUI
-
 global pr_type
 pr_type = 2
 
@@ -64,7 +63,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         with open('Config.ini', 'w') as configfile:
             config.write(configfile)
         print("Текущий путь к quartus_pgm.exe = ", Quartus_sh_path)
-        GUI.print_log("Текущий путь к quartus_pgm.exe = ", Quartus_sh_path)
+        # GUI.print_log("Текущий путь к quartus_pgm.exe = ", Quartus_sh_path)
 
     # Проверяем существует ли данный путь исполняемых файлов
     if os.path.exists(Quartus_sh_path):
@@ -80,7 +79,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         with open('Config.ini', 'w') as configfile:
             config.write(configfile)
         print("Текущий путь к quartus_sh.exe = ", Quartus_sh_path)
-        GUI.print_log("Текущий путь к quartus_sh.exe = ", Quartus_sh_path)
+        # GUI.print_log("Текущий путь к quartus_sh.exe = ", Quartus_sh_path)
 
     # Производим поиск файла с расширением qpf
     users_directory = root_directory + '/' + User_path
@@ -89,7 +88,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         pr_type = 0
         qpf_path = found
         print("Путь к qpf файлу пользователя = ", qpf_path, '\n')
-        GUI.print_log("Путь к qpf файлу пользователя = ", qpf_path)
+        # GUI.print_log("Путь к qpf файлу пользователя = ", qpf_path)
 
     # Производим поиск файла с расширением qsf
     found = Find_files_by_ext(users_directory, '.qsf')
@@ -97,7 +96,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         pr_type = 0
         qsf_path = found
         print("Путь к qsf файлу пользователя = ", qsf_path, '\n')
-        GUI.print_log("Путь к qsf файлу пользователя = ", qsf_path)
+        # GUI.print_log("Путь к qsf файлу пользователя = ", qsf_path)
 
     # Производим поиск файла с расширением sof
     found = Find_files_by_ext(users_directory, '.sof')
@@ -105,7 +104,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         pr_type = 1
         sof_path = found
         print("Путь к sof файлу пользователя = ", sof_path)
-        GUI.print_log("Путь к sof файлу пользователя = ", sof_path)
+        # GUI.print_log("Путь к sof файлу пользователя = ", sof_path)
 
     # Если пользователь отправил проект, в котором есть qpf и qsf файлы
     if (os.path.exists(qpf_path)) and (os.path.exists(qsf_path)) and not (os.path.exists(sof_path)):
@@ -118,7 +117,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         print(root_directory + '/' + User_path)
 
         print("Проект ПЛИС компилируется\n")
-        GUI.print_log("Проект ПЛИС компилируется")
+        # GUI.print_log("Проект ПЛИС компилируется")
         # Начинаем процесс компиляции проекта пользователя
         Project_compilation1 = subprocess.run(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE, shell=True)
@@ -126,8 +125,8 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         print(Project_compilation1.stdout, '\n')
         print(Project_compilation1, '\n')
         print("Компиляция окончена\n")
-        GUI.print_log("Компиляция проекта ПЛИС окончена")
-        GUI.print_log(Project_compilation1.stdout, '\n')
+        # GUI.print_log("Компиляция проекта ПЛИС окончена")
+        # GUI.print_log(Project_compilation1.stdout, '\n')
         # Изменяем дирректорию на изначальную
         os.chdir(root_directory)
 
@@ -145,10 +144,10 @@ def FPGA_flash(User_path, FPGA_num, root_path):
         # print(curent_FPGA.returncode,"\n") # флаг успешного выполнения команды
         # print(curent_FPGA.stdout,"\n") # Вывод консоли
         fpga_list = curent_FPGA.stdout.split("Info: Processing started:", 2)[0]
-        GUI.print_log("Список подключенных устройств\n", fpga_list)
+        # GUI.print_log("Список подключенных устройств\n", fpga_list)
 
         if not curent_FPGA:
-            GUI.print_log("Плата ПЛИС не найдена")
+            # GUI.print_log("Плата ПЛИС не найдена")
             raise IOError("Плата ПЛИС не найдена")
 
 
@@ -162,7 +161,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
             print(curent_port)
         # Если такой платы не существует, выводим соответствую ошибку
         else:
-            GUI.print_log("Плата ПЛИС с заданым индексом не найдена")
+            # GUI.print_log("Плата ПЛИС с заданым индексом не найдена")
             raise IOError("Плата ПЛИС с заданным индексом не найдена")
 
 
@@ -181,34 +180,34 @@ def FPGA_flash(User_path, FPGA_num, root_path):
             #################### Обратить внимание при использовании DE10-NANO ##########################
             curent_device = str(curent_device[12:36])
             print("Текущая плата =", curent_device)
-            GUI.print_log("Текущая плата =", curent_device)
+            # GUI.print_log("Текущая плата =", curent_device)
             print("Несколько ядер")
-            GUI.print_log("Плата ПЛИС имеет несколько ядер")
+            # GUI.print_log("Плата ПЛИС имеет несколько ядер")
             # Производим прошивку необходимого ядра платы ПЛИС
             result = subprocess.run(
                 '{0} -m JTAG -c "{1}" -o p;{2}@{3}'.format(Quartus_pgm_path, curent_port, sof_path, i),
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
             fpga_flashed = result.stdout.split("Info: Processing started:", 2)[1]
             print(fpga_flashed, '\n')  # Вывод консоли
-            GUI.print_log(fpga_flashed)
+            # GUI.print_log(fpga_flashed)
             # Записываем вывод консоли в файл отчета о прошивке платы ПЛИС
             log_file.write(fpga_flashed)
             log_file.close()
             # Обрабатываем 2 состояния завершения прошивки платы
             if result.stdout.count(main_key[0]):
                 print("Прошивка платы ПЛИС окончена")
-                GUI.print_log("Прошивка платы ПЛИС окончена")
+                # GUI.print_log("Прошивка платы ПЛИС окончена")
                 return ("OK", pr_type)
             else:
                 print("Прошивка платы ПЛИС заверщилась неудачей")
-                GUI.print_log("Прошивка платы ПЛИС заверщилась неудачей")
+                # GUI.print_log("Прошивка платы ПЛИС заверщилась неудачей")
                 return ("Neok")
 
 
         # Если плата ПЛИС имеет одно ядро
         else:
             print("Плата ПЛИС имеет одно ядро\n")
-            GUI.print_log("Плата ПЛИС имеет одно ядро")
+            # GUI.print_log("Плата ПЛИС имеет одно ядро")
             print(sof_path, "\n")
             # Производим прошивку платы ПЛИС без указания ядра назначения
             result = subprocess.run('{0} -m JTAG -c "{1}" -o p;{2}'.format(Quartus_pgm_path, curent_port, sof_path),
@@ -220,7 +219,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
             try:
                 fpga_flashed = result.stdout.split("Info: Processing started:", 2)[1]
                 print(fpga_flashed, '\n')  # Вывод консоли
-                GUI.print_log(fpga_flashed)
+                # GUI.print_log(fpga_flashed)
             except:
                 fpga_flashed = "Ошибка при прошивке платы ПЛИС"
             print("FPGA FLASHED = ", fpga_flashed)
@@ -232,7 +231,7 @@ def FPGA_flash(User_path, FPGA_num, root_path):
             # Обрабатываем 2 состояния завершения прошивки платы
             if result.stdout.count(main_key[0]):
                 print("Прошивка платы ПЛИС окончена")
-                GUI.print_log("Прошивка платы ПЛИС окончена")
+                # GUI.print_log("Прошивка платы ПЛИС окончена")
                 return ("OK", pr_type)
             else:
                 return ("Прошить плату не удалось", pr_type)
