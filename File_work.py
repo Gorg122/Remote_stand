@@ -418,7 +418,11 @@ def File_switch(User_path_to_file, root_path, sof_path, script_file_path, sof_fi
     # print(vid_chek, '\n')
     i = 0
     video_path = root_path + "/video/video.mp4"
+<<<<<<< HEAD
     copy_dst = root_path + "/" + "Report/video.mp4"
+=======
+    copy_dst = root_path + "/" + User_path_to_file + "/Report/output.mp4"
+>>>>>>> fa68d1ad6eed29e95551b32cac0a255711548950
     vid_exists = True
     # Производим проверку окончания записи видео
     while vid_exists:
@@ -835,6 +839,26 @@ def Launch(User_path_to_file, root_path):
             GUI.print_log("Запись видео возвращает:", Video_chek.returncode)
             returncode = Video_chek.returncode
             massive_of_diodes = get_data_from_video()
+<<<<<<< HEAD
+=======
+        # Если отсутствует файл прошивки или проект на ПЛИС, ошибка записывается в файл ошибок
+        else:
+            errors_file.write("Отсутствует файл прошивки или проект на ПЛИС\n")
+            errors_ = 1
+            # Задаем пустые значения переменных если файла прошивки нет
+            sof_file_name = ""
+            sof_path = ""
+    # Если отсутствует файл сценария, ошибка записывается в файл ошибок
+    else:
+        errors_file.write("Отправте данные повторно, включая файл сценария\n")
+        errors_ = 1
+        # Задаем соответствующие значения переменных, если отсутствует файл сценария
+        returncode = 1
+        script_file_path = ""
+        script_file_name = ""
+        sof_file_name = ""
+        sof_path = ""
+>>>>>>> fa68d1ad6eed29e95551b32cac0a255711548950
 
      os.chdir("Return")
 
@@ -860,6 +884,7 @@ def Launch(User_path_to_file, root_path):
         GUI.print_log("Результат очистки архива = ", file_delete)
         pp = pprint.PrettyPrinter(indent=4)
 
+<<<<<<< HEAD
     #
     #     credentials = service_account.Credentials.from_service_account_file('C:/Project_930/Project_main/ulcad930-77c72048684c.json', scopes=[
     #         'https://www.googleapis.com/auth/drive'])
@@ -926,5 +951,89 @@ def Launch(User_path_to_file, root_path):
     #     print("Отсутствует файл токена")
     #     GUI.print_log("Отсутствует файл токена")
     # return ("OK", pr_type, command_num, file_link, errors_)
+=======
+    # Указание адреса авторизации
+    # SCOPES = ['https://www.googleapis.com/auth/drive']
+    #
+    # # Проверяем наличие файла токена
+    # token_name = 'ul_cad_1.json'
+    # token_path = root_path + '/' + token_name
+    # if not (os.path.exists(token_path)):
+    #     for root, dirs, files in os.walk('C:/'):
+    #         if files.find(token) != -1:
+    #             token_path = root + '/' + files
+    # elif os.path.exists(token_path):
+    #     SERVICE_ACCOUNT_FILE = token_path
+    #
+    #     # Подключаемся к соответствующему сервису с помощью сервисного аккаунта Google
+    #     credentials = service_account.Credentials.from_service_account_file(
+    #         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    #     service = build('drive', 'v3', credentials=credentials, static_discovery=False)
+        credentials = service_account.Credentials.from_service_account_file('C:/Project_930/Project_main/ulcad930-77c72048684c.json', scopes=[
+            'https://www.googleapis.com/auth/drive'])
+        service = build("drive", "v3", credentials=credentials)
+
+        # Запускаем функцию определения главной папки
+        main_folder_id = Get_main_folder_id(service=service)
+        print("Id главной папки = ", main_folder_id)
+        GUI.print_log("Id главной папки = ", main_folder_id)
+        if User_path_to_file == "":
+            mail_name = "error_folder"
+        else:
+            mail_name = User_path_to_file.split('/', 2)[1]
+        upload_file = True
+        # Запускаем процесс загрузки файлов до положительного исхода
+        while upload_file:
+            #try:
+            # Запускаем функцию создания папки пользователя
+            folder_id = Folder_create(service=service, Users_drive=mail_name, main_folder_id=main_folder_id)
+            print("Id текущей папки = ", folder_id)
+            # Выгружаем файлы из папки, содержащей итоговый архив
+            if User_path_to_file == "":
+                err_path = root_path + '/student_zip/error.txt'
+                err_dir = root_path + '/student_zip'
+                error = open(err_path, 'w')
+                error.write("Проблема с обработкой архива в письме.\n Отправьте архив в формате zip")
+                error.close()
+                error_dir = root_path + '/Archived/Error'
+                os.mkdir(error_dir)
+                os.chdir(error_dir)
+                shutil.make_archive('result', 'zip', err_dir)
+                time.sleep(1)
+                file_link = File_upload(service=service, folder_id=folder_id, file_path=err_path)
+                os.chdir(root_path)
+                shutil.rmtree(error_dir)
+                main_dir = root_path + '/student_zip'
+                for root, dirs, files in os.walk(main_dir):
+                    for direc in dirs:
+                        shutil.rmtree(root + '/' + direc)
+                    for file in files:
+                        os.remove(root + '/' + file)
+                upload_file = False
+            else:
+                # for folders, file in os.listdir(folder_send):
+                #     if file.endswith("zip"):
+                #         file_path = folder_send + "/" + file
+                print("Тот самый путь---------------------------------------------")
+                print(folder_send)
+                folder_send = "C:/Project_930/Project_main_with_web/Remote_stand/" + mail_name
+                file_path = Find_files_by_ext(folder_send, "zip")
+
+                # Получаем ссылку на скачивание данного архива
+                file_link = File_upload(service=service, folder_id=folder_id, file_path=file_path)
+                print("Ссылка на файл = ", file_link)
+                GUI.print_log("Ссылка на файл = ", file_link)
+                upload_file = False
+            # delete_chek = Old_files_delete(main_folder_id, service)
+            # print(delete_chek)
+            upload_file = False
+            # except:
+            #     print("Неудача при загрузке файлов на Google Drive")
+            #     GUI.print_log("Неудача при загрузке файлов на Google Drive")
+    else:
+        print("Отсутствует файл токена")
+        GUI.print_log("Отсутствует файл токена")
+    return ("OK", pr_type, command_num, file_link, errors_)
+>>>>>>> fa68d1ad6eed29e95551b32cac0a255711548950
 
 # Launch(User_path_to_file="student_zip/grisha.petuxov", root_path="C:/Project_930/Prototype_with_mail_bot_TO_EXE")
