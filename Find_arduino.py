@@ -6,9 +6,6 @@ import serial.tools.list_ports
 import subprocess
 import configparser
 
-# import GUI
-
-
 def Find_Arduino(root_path):
     # Раздел статичных переменных
 

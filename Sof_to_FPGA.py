@@ -2,7 +2,6 @@ import os.path
 import subprocess
 import configparser
 #from quickstart import Find_files_by_name, Find_files_by_ext
-import GUI
 global pr_type
 pr_type = 2
 

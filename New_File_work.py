@@ -1,3 +1,18 @@
+from Video import get_data_from_video
+import os
+import shutil
+import re
+import time
+import serial
+# import sys
+import subprocess
+from fastapi import File, UploadFile, FastAPI
+from typing import List
+import uvicorn
+from Sof_to_FPGA import FPGA_flash
+from Find_arduino import Find_Arduino
+# import configparser
+
 def Script_file_detect(User_path_to_file, root_path):
     print(root_path)
     # Создание файла с текущими ошибками в файле скрипта
@@ -17,6 +32,7 @@ def Script_file_detect(User_path_to_file, root_path):
                     script_file_name = file
                     script_file_path = root + '/' + script_file_name
                     print(script_file_path)
+    return (script_file_path)
 # Словарь текущих состояний переключателей
 switches = dict([(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0)])
 # Скрипт передачи управляющих команд на плату Ардуино
@@ -112,7 +128,7 @@ def Arduino_Serial(script_file_path, Arduino_port):
     time.sleep(1)
 
     # Открываем файл текущими ошибками в файле скрипта
-    errors_file = open(errs_path, "w")
+    # errors_file = open(errs_path, "w")
 
     # Построчно читаем файл сценария
     lines = input_file.readlines()
@@ -262,7 +278,7 @@ def main(root_path, User_path_to_file, script_file_path):
         # Производим обработку ошибок компиляции проекта или прошивки платы
         if FPGA_chek != "OK":
             returncode = 1
-            errors_ = 1
+            # errors_ = 1
             # errors_file.write("Проблема с компиляцией проекта, или прошивкой платы, изучите файлы логов\n")
 
         # Производим поиск файла прошивки после окончания прошивки платы ПЛИС или компиляции проекта
@@ -335,7 +351,6 @@ def main(root_path, User_path_to_file, script_file_path):
             # Возвращаем флаг удачного завершения процесса передачи данных
             if serial == "OK":
                 print("Передача данных окончена")
-                GUI.print_log("Передача данных окончена")
 
             # Ожидаем окончания процесса записи видео
             Video_chek.wait()
@@ -344,3 +359,64 @@ def main(root_path, User_path_to_file, script_file_path):
                 time.sleep(0.5)
             # Выводим код возврата процесса записи видео
             print("Запись видео возвращает:", Video_chek.returncode)
+    return 'OK'
+# def Delete_files(root_path, User_path_to_file):
+#     users_dir = root_path + '/' + User_path_to_file
+#     # Производим поиск файла окончания процесса записи видео
+#     if os.path.exists(root_path + "/video_done.txt") \
+#             and os.path.isfile(root_path + "/video_done.txt"):
+#         print("Удаление файла video_done.txt\n")
+#         # Удаляем данный файл
+#         os.remove(root_path + "/video_done.txt")
+#
+#     # Производим поиск файла, содержащего длительность записи видео
+#     if os.path.exists(root_path + "/video_timing.txt") \
+#             and os.path.isfile(root_path + "/video_timing.txt"):
+#         print("Удаление файла video_timing.txt\n")
+#         # Удаляем данный файл
+#         os.remove(root_path + "/video_timing.txt")
+
+app = FastAPI()
+@app.post("/upload")
+def upload(files: List[UploadFile] = File(...)):
+    path = sys.argv[0]
+    new_path = path.split('/')[:-1]
+    new_str_path = "/".join(new_path)
+    print(new_str_path)
+    root_path = new_str_path
+    User_path_to_file = 'Input_files'
+    script_file_path = Script_file_detect(User_path_to_file, root_path)
+    check = main(root_path, User_path_to_file, script_file_path)
+    if (check == 'OK'):
+        get_data_from_video()
+    for file in files:
+        try:
+            try:
+                os.mkdir("Input_files")
+                print(os.getcwd())
+            except Exception as e:
+                print(e)
+            file_name = os.getcwd() + "/files/" + file.filename.replace(" ", "-")
+            with open(file_name, 'wb+') as f:
+                f.write(file.file.read())
+                f.close()
+            contents = file.file.read()
+            with open(file.filename, 'wb') as f:
+                f.write(contents)
+        except Exception:
+            return {"message": "There was an error uploading the file(s)"}
+        finally:
+            file.file.close()
+
+    return {"message": f"Successfuly uploaded {[file.filename for file in files]}"}
+
+if __name__ == "__main__":
+    # path = sys.argv[0]
+    # new_path = path.split('/')[:-1]
+    # new_str_path = "/".join(new_path)
+    # print(new_str_path)
+    # root_path = new_str_path
+    # User_path_to_file = 'Input_files'
+    # script_file_path = Script_file_detect(User_path_to_file, root_path)
+    # main(root_path, User_path_to_file, script_file_path)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
