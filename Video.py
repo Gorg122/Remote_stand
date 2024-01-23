@@ -61,7 +61,7 @@ def Video():
     x, y, h, w = 80, 150, 300, 450
     # start = 0
     # cap = cv2.VideoCapture(0)
-    out = cv2.VideoWriter('video.mp4', fourcc, fps, (w, h))
+    out = cv2.VideoWriter('Output_files/video.mp4', fourcc, fps, (w, h))
     tik = time.time()
     print(tik)
     tok = 0.0
@@ -111,7 +111,7 @@ def Video():
     done_chek.close()
     # quit()
 def get_data_from_video():
-    video_path = 'video.mp4'
+    video_path = 'Output_files/video.mp4'
     cap = cv2.VideoCapture(video_path)
 
     # Создайте окно для просмотра видео
@@ -290,7 +290,7 @@ def get_data_from_video():
     # Освободите видеопоток и закройте окно
     cap.release()
     cv2.destroyAllWindows()
-    return diode_mask_new
+    return diode_mask_old
 
 if __name__ == '__main__':
     Video()

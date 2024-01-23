@@ -4,7 +4,7 @@ import shutil
 import re
 import time
 import serial
-# import sys
+import sys
 import subprocess
 from fastapi import File, UploadFile, FastAPI
 from typing import List
@@ -379,16 +379,19 @@ def main(root_path, User_path_to_file, script_file_path):
 app = FastAPI()
 @app.post("/upload")
 def upload(files: List[UploadFile] = File(...)):
-    path = sys.argv[0]
-    new_path = path.split('/')[:-1]
-    new_str_path = "/".join(new_path)
-    print(new_str_path)
-    root_path = new_str_path
-    User_path_to_file = 'Input_files'
-    script_file_path = Script_file_detect(User_path_to_file, root_path)
-    check = main(root_path, User_path_to_file, script_file_path)
-    if (check == 'OK'):
-        get_data_from_video()
+    # path = sys.argv[0]
+    # new_path = path.split('/')[:-1]
+    # new_str_path = "/".join(new_path)
+    # print(new_str_path)
+    # root_path = new_str_path
+    # User_path_to_file = 'Input_files'
+    # script_file_path = Script_file_detect(User_path_to_file, root_path)
+    # print(script_file_path)
+    # check = main(root_path, User_path_to_file, script_file_path)
+    # print(check)
+    # if (check == 'OK'):
+    #     kekich = get_data_from_video()
+    #     print(kekich)
     for file in files:
         try:
             try:
@@ -403,10 +406,18 @@ def upload(files: List[UploadFile] = File(...)):
             contents = file.file.read()
             with open(file.filename, 'wb') as f:
                 f.write(contents)
-        except Exception:
-            return {"message": "There was an error uploading the file(s)"}
+        # except Exception:
+        #     return {"message": "There was an error uploading the file(s)"}
         finally:
             file.file.close()
+    User_path_to_file = 'Input_files'
+    script_file_path = Script_file_detect(User_path_to_file, root_path)
+    print(script_file_path)
+    check = main(root_path, User_path_to_file, script_file_path)
+    print(check)
+    if (check == 'OK'):
+        kekich = get_data_from_video()
+        print(kekich)
 
     return {"message": f"Successfuly uploaded {[file.filename for file in files]}"}
 

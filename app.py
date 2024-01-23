@@ -2,6 +2,8 @@ from fastapi import File, UploadFile, FastAPI
 from typing import List
 import uvicorn
 import os
+from Sof_to_FPGA import FPGA_flash
+from Find_arduino import Find_Arduino
 app = FastAPI()
 @app.post("/upload")
 def upload(files: List[UploadFile] = File(...)):
@@ -19,14 +21,18 @@ def upload(files: List[UploadFile] = File(...)):
             contents = file.file.read()
             with open(file.filename, 'wb') as f:
                 f.write(contents)
-        except Exception:
-            return {"message": "There was an error uploading the file(s)"}
+        # except Exception:
+        #     return {"message": "There was an error uploading the file(s)"}
         finally:
             file.file.close()
-
+    print("Pukich")
     return {"message": f"Successfuly uploaded {[file.filename for file in files]}"}
+# def kek():
+#     print("Pukich is ready")
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
+    # kek()
 
 # @app.post("/create_file/")
 # async def image(image: UploadFile = File(...)):
